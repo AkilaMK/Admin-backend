@@ -5,10 +5,7 @@ import com.example.admin.dto.request.RegisterRequest;
 import com.example.admin.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
@@ -22,5 +19,12 @@ public class UserController {
         User user = userService.registerUser(registerRequest);
 
         return ResponseEntity.ok("User registered successfully");
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createUserByAdmin(@RequestBody RegisterRequest registerRequest, @RequestParam String roleName) {
+        User user = userService.createNewUser(registerRequest, roleName);
+
+        return ResponseEntity.ok("User created successfully");
     }
 }

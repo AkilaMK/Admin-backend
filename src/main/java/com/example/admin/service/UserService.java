@@ -1,19 +1,16 @@
 package com.example.admin.service;
 
+import com.example.admin.data.model.Role;
 import com.example.admin.data.model.User;
 import com.example.admin.data.repository.UserRepository;
 import com.example.admin.dto.request.RegisterRequest;
 import com.example.admin.exception.BadRequestException;
-import com.example.admin.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -24,15 +21,6 @@ public class UserService implements UserDetailsService {
     @Autowired
     private ValidationService validationService;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = findByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + email);
-        }
-        return new CustomUserDetails(user);
-    }
-
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -42,6 +30,10 @@ public class UserService implements UserDetailsService {
     }
 
     public User registerUser(RegisterRequest registerRequest) {
+        return createNewUser(registerRequest, "USER");
+    }
+
+    public User createNewUser(RegisterRequest registerRequest, String roleName) {
         validationService.validateRegisterRequest(registerRequest);
 
         if (findByEmail(registerRequest.getEmail()) != null) {
@@ -56,6 +48,12 @@ public class UserService implements UserDetailsService {
         // Encrypt the password before saving
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
         user.setPassword(encodedPassword);
+
+        // Set default role
+        Role role = new Role();
+        role.setName(roleName);
+//        role.setUser(user);
+        user.getRoles().add(role);
 
         user = save(user);
         return user;
