@@ -1,7 +1,8 @@
-package com.example.admin.service;
+package com.example.admin.security;
 
 import com.example.admin.data.model.User;
 import com.example.admin.data.repository.UserRepository;
+import com.example.admin.dto.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +20,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
-        return new com.example.admin.security.CustomUserDetails(user);
+        return new CustomUserDetails(user);
     }
 }

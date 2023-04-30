@@ -1,6 +1,7 @@
 package com.example.admin.service;
 
 import com.example.admin.dto.request.LoginRequest;
+import com.example.admin.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

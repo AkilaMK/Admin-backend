@@ -1,4 +1,4 @@
-package com.example.admin.security;
+package com.example.admin.dto;
 
 import com.example.admin.data.model.User;
 import org.springframework.security.core.GrantedAuthority;

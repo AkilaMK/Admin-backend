@@ -2,41 +2,42 @@ package com.example.admin.service;
 
 import com.example.admin.data.model.Role;
 import com.example.admin.data.model.User;
+import com.example.admin.data.repository.RoleRepository;
 import com.example.admin.data.repository.UserRepository;
+import com.example.admin.dto.UserDto;
 import com.example.admin.dto.request.RegisterRequest;
 import com.example.admin.exception.BadRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private ValidationService validationService;
+    private final ValidationService validationService;
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public User save(User user) {
-        return userRepository.save(user);
-    }
+    private final RoleRepository roleRepository;
 
     public User registerUser(RegisterRequest registerRequest) {
         return createNewUser(registerRequest, "USER");
     }
 
+    @Transactional
     public User createNewUser(RegisterRequest registerRequest, String roleName) {
         validationService.validateRegisterRequest(registerRequest);
 
-        if (findByEmail(registerRequest.getEmail()) != null) {
+        User userByEmail = userRepository.findByEmail(registerRequest.getEmail());
+        if (!Objects.isNull(userByEmail)) {
             throw new BadRequestException("Email is already in use.");
         }
 
@@ -49,13 +50,20 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
         user.setPassword(encodedPassword);
 
-        // Set default role
-        Role role = new Role();
-        role.setName(roleName);
-//        role.setUser(user);
-        user.getRoles().add(role);
+        Role role = roleRepository.findByName(roleName);
+        if (Objects.isNull(role)) {
+            throw new BadRequestException("Invalid role requested for the user.");
+        }
+        user.addRole(role);
 
-        user = save(user);
+        user = userRepository.save(user);
         return user;
+    }
+
+    public List<UserDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(UserDto::from)
+                .collect(Collectors.toList());
     }
 }
